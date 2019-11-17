@@ -78,6 +78,7 @@ const styles = {
         backgroundColor: '#fff',        
         borderRadius: 15,        
         marginTop: 30,
+        paddingLeft: 30,
         padding: 20,
         paddingTop: 40,
         paddingBottom: 40,
@@ -100,7 +101,7 @@ const styles = {
     mainPlaceholderContainer: {
         flexDirection: 'column',
         width: width*0.6,
-        maxHeight: height-120 - 120,
+        maxHeight: height-120 - 220,
         paddingBottom: 300,
     },
     palceholder: {
@@ -118,7 +119,7 @@ const styles = {
     },
     planReviewBottomContainer: {
         borderTopWidth: 0,
-        height: 100,
+        height: 300,
         backgroundColor: 'rgba(	249, 249, 249, 1)',
         borderTopColor: '#e9e9e9',
         shadowOffset: {
@@ -129,7 +130,8 @@ const styles = {
         shadowRadius: 2.41,
         flexDirection: 'row',
         justifyContent: 'flex-end',
-        alignItems: 'center',
+        paddingTop: 40,
+        alignItems: 'flex-start',
         paddingRight: 50
     },
     planReviewBottomRejectContainer: {
@@ -171,7 +173,8 @@ const styles = {
         width: width*0.3,   
         paddingRight: 20,   
         borderRightWidth: 1,
-        minHeight: height,
+        paddingBottom: 200,
+        height: height-150,
         borderRightColor: '#e9e9e9'
     },
     sidePlaceholder: {
@@ -240,6 +243,21 @@ const styles = {
         padding: 10,
         borderRadius: 20
     },
+    badgeRejected: {
+        backgroundColor: 'red',
+        padding: 10,
+        borderRadius: 20
+    },
+    badgeReviewed: {
+        backgroundColor: '#FBC02D',
+        padding: 10,
+        borderRadius: 20
+    },
+    prescText: {
+        fontFamily: 'HelveticaNeue',
+        padding: 40,
+        fontSize: 18
+    },
 
     blockHeader: {
         fontFamily: 'HelveticaNeue-Bold',
@@ -256,6 +274,7 @@ const styles = {
         justifyContent: 'flex-start',        
         width: width*0.28,
         marginTop: 30,
+        marginLeft: 40,
         width: width*0.3,
         zIndex: 101,
         

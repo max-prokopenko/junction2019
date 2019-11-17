@@ -28,7 +28,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { WebView } from 'react-native-webview';
 
 
-class DashboardView extends React.Component {
+class PhyView extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -41,8 +41,7 @@ class DashboardView extends React.Component {
       selectedPlanObj: null,
       rejectDialogOpen: false,
       selectedPlan: null,
-      selectedIndex: 0,
-      doctors: [],
+      phys: []
     }
   }
   static navigationOptions = {
@@ -62,71 +61,16 @@ class DashboardView extends React.Component {
         // console.log(responseJson)
         let users = responseJson.output;
         users = users.filter(u => u.state.data.type === 'Patient');
-        //console.log(users);
+        phys = responseJson.output.filter(u => u.state.data.type === 'Physicist');
+        console.log(phys);
         this.setState({
           patients: users,
-          doctors: responseJson.output.filter(u => u.state.data.type == 'Doctor'),
+          phys: phys,
         })
       })
       .catch((error) => {
         console.error(error);
       });
-  }
-  acceptPlan = () => {
-    fetch('http://de3791f7.ngrok.io/accept-tp', {
-      method: 'POST',
-      headers: {
-        Accept: 'Application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        planId: this.state.selectedPlanObj.state.data.linearId.id,
-        acceptor: this.state.doctors[this.state.selectedIndex].state.data.linearId.id,
-        notes: 'Max'
-      }),
-    })
-      .then(r => {
-        console.log(r);
-        this.getPlans();
-        this.forceUpdate();
-      })
-      .catch((error) => {
-        console.error(error);
-      });;
-  }
-  rejectPlan = () => {
-    console.log(JSON.stringify({
-      proposedPlanId: this.state.selectedPlanObj.state.data.linearId.id,
-      updateProposer: {
-        [this.state.doctors[this.state.selectedIndex].state.data.linearId.id]: this.state.doctors[this.state.selectedIndex].state.data.node
-      },
-      updatedTreatmentPlan: JSON.stringify(this.state.selectedPlanObj.state.data.treatmentPlanData),
-      notes: 'Important notes'
-    }));
-    fetch('http://de3791f7.ngrok.io/update-tp', {
-      method: 'POST',
-      headers: {
-        Accept: 'Application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        proposedPlanId: this.state.selectedPlanObj.state.data.linearId.id,
-        updateProposer: JSON.stringify({
-          [this.state.doctors[this.state.selectedIndex].state.data.linearId.id]: this.state.doctors[this.state.selectedIndex].state.data.node
-        }),
-        updatedTreatmentPlan: JSON.stringify(this.state.selectedPlanObj.state.data.treatmentPlanData),
-        notes: 'Important notes'
-      }),
-    })
-      .then(r => {
-        console.log(r);
-        this.getPlans();
-        this.setState({rejectDialogOpen: false})
-        this.forceUpdate();
-      })
-      .catch((error) => {
-        console.error(error);
-      });;
   }
   getPlanData = () => {
     fetch('https://junction-planreview.azurewebsites.net/api/patients/Lung/plans/JSu-IM102')
@@ -142,21 +86,18 @@ class DashboardView extends React.Component {
     fetch('http://de3791f7.ngrok.io/get-treatment-plans')
       .then((response) => response.json())
       .then((responseJson) => {
-        console.log(responseJson)
-
+       
         let plans = responseJson.latest.map(lp => {
           let obj = lp;
           obj.state.data.treatmentPlanData = JSON.parse(lp.state.data.treatmentPlanData)
           return obj;
         })
         console.log(plans);
-        if (plans.length > 0) {
-          this.setState({
-            latestPlans: plans,
-            selectedPlanObj: plans[0],
-            selectedPlan: plans[0].state.data.treatmentPlanData.Id
-          })
-        }
+        this.setState({
+          latestPlans: plans,
+          selectedPlanObj: plans[0],
+          selectedPlan: plans[0].state.data.treatmentPlanData.Id
+        })
       })
       .catch((error) => {
         console.error(error);
@@ -167,10 +108,32 @@ class DashboardView extends React.Component {
     console.log(this.props.navigation);
     this.props.navigation.navigate('PlannerView');
   }
-  openPhy = () => {
+  openDoctor = () => {
     console.log('Opennign planner');
     console.log(this.props.navigation);
-    this.props.navigation.navigate('PhyView');
+    this.props.navigation.navigate('DashboardView');
+  }
+  acceptPlan = () => {
+    fetch('http://de3791f7.ngrok.io/accept-tp', {
+      method: 'POST',
+      headers: {
+        Accept: 'Application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        planId: this.state.selectedPlanObj.state.data.linearId.id,
+        acceptor: this.state.phys[0].state.data.linearId.id,
+        notes: 'Max'
+      }),
+    })
+      .then(r => {
+        console.log(r);
+        this.getPlans();
+        this.forceUpdate();
+      })
+      .catch((error) => {
+        console.error(error);
+      });;
   }
   render() {
     const { navigate } = this.props.navigation;
@@ -182,44 +145,31 @@ class DashboardView extends React.Component {
             style={styles.topNavigationLogo}
             source={require('../../images/varian_logo_transparent.png')}
           />
-          <View style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
-            <View style={{ flexDirection: 'row' }}>
-              <TouchableOpacity onPress={() => this.setState({ selectedIndex: 0 })}>
-                <Image
-                  style={[styles.topNavigationAvatar, this.state.selectedIndex == 0 ? { borderWidth: 4, borderColor: '#03a9f4' } : {}]}
-                  source={require('../../images/avatar.png')}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => this.setState({ selectedIndex: 1 })}>
-                <Image
-                  style={[styles.topNavigationAvatar, this.state.selectedIndex == 1 ? { borderWidth: 4, borderColor: '#03a9f4' } : {}]}
-                  source={require('../../images/avatar.png')}
-                />
-              </TouchableOpacity>
-            </View>
-            {this.state.doctors.length > 0 && <Text style={{ marginTop: 3 }}>Doctor ID: {this.state.doctors[this.state.selectedIndex].state.data.linearId.id}</Text>}
-          </View>
+          <Image
+            style={styles.topNavigationAvatar}
+            source={require('../../images/avatar.png')}
+          />
         </View>
         <View style={styles.sideNavigationContainer}>
           {1 == 1 && <View>
+            <TouchableOpacity style={[styles.menuItemContainer]}
+            onPress={this.openDoctor}>
+              <MaterialIcon name="person" size={30} color="#777" style={styles.menuItem} />
+              <Text style={styles.menuItemText}>Doctor</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.menuItemContainer]}
+            onPress={this.openPlanner}>
+              <MaterialIcon name="person" size={30} color="#777" style={styles.menuItem} />
+              <Text style={styles.menuItemText}>Planner</Text>
+            </TouchableOpacity>
             <View style={[styles.menuItemContainer, {
               borderLeftWidth: 6,
               borderLeftColor: '#03a9f4',
               width: 120
             }]}>
               <MaterialIcon name="person" size={30} color="#03a9f4" style={styles.menuItem} />
-              <Text style={styles.menuItemTextSelected}>Doctor</Text>
+              <Text style={styles.menuItemTextSelected}>Physicist</Text>
             </View>
-            <TouchableOpacity onPress={() => this.openPlanner()} style={styles.menuItemContainer}>
-              <MaterialIcon name="person" size={30} color="#777" style={styles.menuItem} />
-              <Text style={styles.menuItemText}>Planner</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.menuItemContainer]}
-              onPress={this.openPhy}
-            >
-              <MaterialIcon name="person" size={30} color="#777" style={styles.menuItem} />
-              <Text style={styles.menuItemText}>Physicist</Text>
-            </TouchableOpacity>
 
           </View>}
         </View>
@@ -295,6 +245,7 @@ class DashboardView extends React.Component {
               <TouchableOpacity style={styles.planReviewBottomApproveContainer} onPress={this.acceptPlan}>
                 <Text style={styles.planReviewBottomApproveText}>Approve</Text>
               </TouchableOpacity>
+
             </View>
           </View>
         </View>
@@ -329,21 +280,21 @@ class DashboardView extends React.Component {
           animationOut={'fadeOut'}
           style={styles.rejectmodalContainer}
         >
-          <View style={styles.rejectionModalSubContainer}>
-            <Text style={styles.notesTextHeader}  >Rejection Notes</Text>
-            <TextInput
-              style={styles.notesTextField}
-              multiline
-            />
-            <TouchableOpacity style={styles.sendButtonContainer} onPress={this.rejectPlan}>
-              <Text style={styles.sendButtonText}>Send</Text>
-            </TouchableOpacity>
-          </View>
+            <View style={styles.rejectionModalSubContainer}>
+              <Text style={styles.notesTextHeader}  >Rejection Notes</Text>
+              <TextInput
+                style={styles.notesTextField}
+                multiline
+              />
+              <View style={styles.sendButtonContainer}>
+                <Text style={styles.sendButtonText}>Send</Text>
+              </View>
+            </View>         
         </Modal>
-
+       
       </View>
     );
   }
 }
 
-export default DashboardView;
+export default PhyView;
